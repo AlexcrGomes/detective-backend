@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Game {
+  id              String       @id @default(uuid())
+  name            String
+  playerCount     Int
+  isSetupComplete Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  notes           CardNote[]
+  players         Player[]
+  theory          Theory?
+  suggestions     Suggestion[]
+}
+
+model Player {
+  id        String     @id @default(uuid())
+  name      String
+  isMe      Boolean
+  cardCount Int
+  gameId    String
+  notes     CardNote[]
+  game      Game       @relation(fields: [gameId], references: [id])
+}
+
+model CardNote {
+  id          String     @id @default(uuid())
+  gameId      String
+  playerId    String
+  cardId      String
+  observation String?
+  status      CardStatus @default(UNKNOWN)
+  game        Game       @relation(fields: [gameId], references: [id])
+  player      Player     @relation(fields: [playerId], references: [id])
+
+  @@unique([playerId, cardId])
+}
+
+model Theory {
+  id            String  @id @default(uuid())
+  gameId        String  @unique
+  suspectCardId String?
+  weaponCardId  String?
+  roomCardId    String?
+  game          Game    @relation(fields: [gameId], references: [id])
+}
+
+enum CardStatus {
+  UNKNOWN
+  HAS
+  DOES_NOT_HAVE
+}
+
+model Suggestion {
+  id              String            @id @default(uuid())
+  gameId          String
+  askedByPlayerId String
+  suspectCardId   String
+  weaponCardId    String
+  roomCardId      String
+  responderId     String?
+  createdAt       DateTime          @default(now())
+  game            Game              @relation(fields: [gameId], references: [id])
+  checks          SuggestionCheck[]
+
+  @@index([gameId])
+}
+
+model SuggestionCheck {
+  id           String     @id @default(uuid())
+  suggestionId String
+  playerId     String
+  responded    Boolean
+  suggestion   Suggestion @relation(fields: [suggestionId], references: [id])
+}
