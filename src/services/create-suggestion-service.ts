@@ -1,6 +1,6 @@
-import { prisma } from '../lib/prisma'
+import { prisma } from '../lib/prisma.js'
 
-interface SuggestionCheckInput {
+interface SuggestionCheckRequest {
   playerId: string
   responded: boolean
 }
@@ -11,11 +11,10 @@ interface CreateSuggestionRequest {
   suspectCardId: string
   weaponCardId: string
   roomCardId: string
-  checks: SuggestionCheckInput[]
+  checks: SuggestionCheckRequest[]
 }
 
 export class CreateSuggestionService {
-
   async execute({
     gameId,
     askedByPlayerId,
@@ -24,7 +23,6 @@ export class CreateSuggestionService {
     roomCardId,
     checks
   }: CreateSuggestionRequest) {
-
     const game = await prisma.game.findUnique({
       where: {
         id: gameId
@@ -35,50 +33,65 @@ export class CreateSuggestionService {
       throw new Error('Game not found')
     }
 
-    const suggestion =
-      await prisma.suggestion.create({
-        data: {
-          gameId,
-          askedByPlayerId,
-          suspectCardId,
-          weaponCardId,
-          roomCardId
-        }
-      })
-
-    for (const check of checks) {
-
-      await prisma.suggestionCheck.create({
-        data: {
-          suggestionId: suggestion.id,
-          playerId: check.playerId,
-          responded: check.responded
-        }
-      })
-
-      if (!check.responded) {
-
-        await prisma.cardNote.updateMany({
-          where: {
-            gameId,
-            playerId: check.playerId,
-            cardId: {
-              in: [
-                suspectCardId,
-                weaponCardId,
-                roomCardId
-              ]
-            }
-          },
+    const createdSuggestion = await prisma.$transaction(
+      async (tx) => {
+        const suggestion = await tx.suggestion.create({
           data: {
-            status: 'DOES_NOT_HAVE',
-            observation:
-              'Inferido por não responder sugestão'
+            gameId,
+            askedByPlayerId,
+            suspectCardId,
+            weaponCardId,
+            roomCardId
+          }
+        })
+
+        await tx.suggestionCheck.createMany({
+          data: checks.map((check) => ({
+            suggestionId: suggestion.id,
+            playerId: check.playerId,
+            responded: check.responded
+          }))
+        })
+
+        for (const check of checks) {
+          if (!check.responded) {
+            await tx.cardNote.updateMany({
+              where: {
+                gameId,
+                playerId: check.playerId,
+                cardId: {
+                  in: [
+                    suspectCardId,
+                    weaponCardId,
+                    roomCardId
+                  ]
+                }
+              },
+              data: {
+                status: 'DOES_NOT_HAVE',
+                observation:
+                  'Inferido por não responder sugestão'
+              }
+            })
+          }
+        }
+
+        return await tx.suggestion.findUnique({
+          where: {
+            id: suggestion.id
+          },
+          include: {
+            checks: {
+              select: {
+                playerId: true,
+                responded: true
+              }
+            }
           }
         })
       }
-    }
+    )
 
-    return suggestion
+    return createdSuggestion
   }
 }

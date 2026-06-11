@@ -8,6 +8,7 @@ import { GetBoardController } from './controllers/get-board-controller'
 import { UpdateNoteController } from './controllers/update-note-controller'
 import { GetTheoryController } from './controllers/get-theory-controller'
 import { CreateSuggestionController } from './controllers/create-suggestion-controller'
+import { GetSuggestionController } from './controllers/get-suggestion-controller'
 
 const routes = Router()
 
@@ -19,6 +20,7 @@ const getBoardController = new GetBoardController()
 const updateNoteController = new UpdateNoteController()
 const getTheoryController = new GetTheoryController()
 const createSuggestionController = new CreateSuggestionController()
+const getSuggestionController = new GetSuggestionController()
 
 routes.get('/cards', getCardsController.handle)
 
@@ -35,5 +37,7 @@ routes.post('/games/:gameId/suggestions', createSuggestionController.handle)
 routes.patch('/games/:gameId/notes', updateNoteController.handle)
 
 routes.get('/games/:gameId/theory', getTheoryController.handle)
+
+routes.get('/games/:gameId/suggestions', getSuggestionController.handle)
 
 export { routes }
