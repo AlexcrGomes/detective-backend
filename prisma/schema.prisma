@@ -77,5 +77,6 @@ model SuggestionCheck {
   suggestionId String
   playerId     String
   responded    Boolean
+  shownCardId  String?
   suggestion   Suggestion @relation(fields: [suggestionId], references: [id])
 }
