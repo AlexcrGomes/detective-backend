@@ -46,6 +46,7 @@ export class GetBoardService {
 
     return {
       gameId: game.id,
+      gameName: game.name,
 
       players: game.players.map(player => ({
         id: player.id,
