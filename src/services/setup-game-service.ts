@@ -107,17 +107,9 @@ export class SetupGameService {
 
             let status: CardStatus = 'UNKNOWN'
 
-            if (
-              player.isMe &&
-              myCards.includes(cardId)
-            ) {
-              status = 'HAS'
-            }
-
-            if (
-              !player.isMe &&
-              myCards.includes(cardId)
-            ) {
+            if (player.isMe) {
+              status = myCards.includes(cardId) ? 'HAS' : 'DOES_NOT_HAVE'
+            } else if (myCards.includes(cardId)) {
               status = 'DOES_NOT_HAVE'
             }
 
