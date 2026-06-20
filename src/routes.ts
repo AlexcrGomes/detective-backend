@@ -3,7 +3,6 @@ import { Router } from 'express'
 import { GetCardsController } from './controllers/get-cards-controller'
 import { CreateGameController } from './controllers/create-game-controller'
 import { GetGameController } from './controllers/get-game-controller'
-import { SetupGameController } from './controllers/setup-game-controller'
 import { GetBoardController } from './controllers/get-board-controller'
 import { GetTheoryController } from './controllers/get-theory-controller'
 import { CreateSuggestionController } from './controllers/create-suggestion-controller'
@@ -14,7 +13,6 @@ const routes = Router()
 const getCardsController = new GetCardsController()
 const createGameController = new CreateGameController()
 const getGameController = new GetGameController()
-const setupGameController = new SetupGameController()
 const getBoardController = new GetBoardController()
 const getTheoryController = new GetTheoryController()
 const createSuggestionController = new CreateSuggestionController()
@@ -25,8 +23,6 @@ routes.get('/cards', getCardsController.handle)
 routes.post('/games', createGameController.handle)
 
 routes.get('/games/:gameId', getGameController.handle)
-
-routes.post('/games/:gameId/setup', setupGameController.handle)
 
 routes.get('/games/:gameId/board', getBoardController.handle)
 
